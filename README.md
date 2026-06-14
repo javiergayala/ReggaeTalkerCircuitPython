@@ -11,7 +11,11 @@ On boot, `code.py`:
 3. Configures the QT Py ESP32-S3 BOOT button as an input with a pull-up.
 4. Plays the next WAV file each time BOOT is pressed.
 5. Wraps back to the first WAV file after the last one.
-6. Sets the software mixer voice level to `1.0` for maximum software volume. For more physical output, adjust the Audio BFF gain jumper and use an appropriately rated 4-8Ω speaker.
+6. Uses a pre-allocated 1024-byte writable buffer for `audiocore.WaveFile` playback and sets the software mixer voice level to `1.0` for maximum software volume. For more physical output, adjust the Audio BFF gain jumper and use an appropriately rated 4-8Ω speaker.
+
+## WAV playback buffer
+
+`code.py` creates one reusable `bytearray(1024)` buffer for `audiocore.WaveFile`. CircuitPython allows WaveFile buffers from 8 to 1024 bytes; this script uses the maximum supported size to avoid repeated internal audio-buffer allocation when changing tracks.
 
 ## Hardware pinout
 

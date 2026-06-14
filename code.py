@@ -24,6 +24,10 @@ SD_MOUNT = "/sd"
 WAV_EXTENSION = ".wav"
 DEBOUNCE_SECONDS = 0.05
 DIRECTORY_FLAG = 0x4000
+# CircuitPython audiocore.WaveFile accepts an optional writable buffer from
+# 8-1024 bytes. Use the maximum size so playback does not need to allocate
+# internal buffers each time a WAV starts.
+WAVE_BUFFER_SIZE = 1024
 
 # Adafruit Audio BFF default pinout for QT Py S2/S3/RP2040:
 # A0 = SD card chip select, A1 = I2S data, A2 = I2S word select/LRCLK,
@@ -45,6 +49,7 @@ boot_button.switch_to_input(pull=digitalio.Pull.UP)
 audio = audiobusio.I2SOut(I2S_BIT_CLOCK, I2S_WORD_SELECT, I2S_DATA)
 current_file = None
 mixer = None
+wave_buffer = bytearray(WAVE_BUFFER_SIZE)
 
 
 def is_directory(path):
@@ -120,7 +125,7 @@ def play_wav(path):
     stop_audio()
     print("Playing", path)
     current_file = open(path, "rb")
-    wave = audiocore.WaveFile(current_file)
+    wave = audiocore.WaveFile(current_file, wave_buffer)
     mixer = audiomixer.Mixer(
         voice_count=1,
         sample_rate=wave.sample_rate,
