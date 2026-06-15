@@ -28,6 +28,12 @@ DIRECTORY_FLAG = 0x4000
 # 8-1024 bytes. Use the maximum size so playback does not need to allocate
 # internal buffers each time a WAV starts.
 WAVE_BUFFER_SIZE = 1024
+# Give the mixer a larger queue than its default so SD-card read latency is
+# less likely to show up as small audible ticks during playback.
+MIXER_BUFFER_SIZE = 4096
+# Leave a little digital headroom. Full-scale WAV files can otherwise clip in
+# the software mixer / I2S path and sound like clicks or crackles.
+PLAYBACK_LEVEL = 0.8
 
 # Adafruit Audio BFF default pinout for QT Py S2/S3/RP2040:
 # A0 = SD card chip select, A1 = I2S data, A2 = I2S word select/LRCLK,
@@ -128,12 +134,13 @@ def play_wav(path):
     wave = audiocore.WaveFile(current_file, wave_buffer)
     mixer = audiomixer.Mixer(
         voice_count=1,
+        buffer_size=MIXER_BUFFER_SIZE,
         sample_rate=wave.sample_rate,
         channel_count=wave.channel_count,
         bits_per_sample=wave.bits_per_sample,
         samples_signed=True,
     )
-    mixer.voice[0].level = 1.0
+    mixer.voice[0].level = PLAYBACK_LEVEL
     audio.play(mixer)
     mixer.voice[0].play(wave)
 
